@@ -1,0 +1,31 @@
+application: avisbergamo-1469961291449
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+# [INIZIO handlers]
+handlers:
+- url: /bootstrap
+  static_dir: bootstrap
+
+- url: /js
+  static_dir: js
+
+- url: /img
+  static_dir: img
+
+- url: .*
+  script: avis.app
+  secure: always
+# [FINE handlers]
+
+# [INIZIO librerie]
+libraries:
+- name: webapp2
+  version: latest
+- name: PIL
+  version: latest
+- name: jinja2
+  version: latest
+# [FINE librerie]

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <!-- [START css] -->
+    <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
+    <script src="js/jquery-3.1.0.min.js"></script>
+    <script src='/_ah/channel/jsapi'></script>
+    <script type="text/javascript">
+      var disegna = function() {
+        var canvas = document.getElementById('domanda');
+        var w = canvas.width * 0.99;
+        var h = canvas.height * 0.99;
+
+        canvas.style="margin:7px";
+
+        console.log(w);
+        console.log(h);
+
+        var ctx = canvas.getContext('2d');
+        ctx.beginPath();
+        ctx.lineWidth = "7";
+        ctx.strokeStyle = "#354d94";
+
+        ctx.moveTo(w/2,10);
+        ctx.lineTo(w/2 + w/21, h/14 + h/9);
+        ctx.lineTo(w - w/20, h/14 + h/9); // pre arc
+        ctx.arcTo(w, h/14 + h/9, w, h/14 + h/9 + w/20, w/20);
+        ctx.lineTo(w, h - w/20); // pre arc;
+        ctx.arcTo(w, h, w - w/20, h, w/20);
+        ctx.lineTo(w/20 + 10, h);  // pre arc
+        ctx.arcTo(10, h, 10, h - w/20, w/20);
+        ctx.lineTo(10, h/14 + h/9 + w/20); // pre arc
+        ctx.arcTo(10, h/14 + h/9 , w/20, h/14 + h/9, w/20);
+        ctx.lineTo(w/2 - w/21, h/14 + h/9);
+        ctx.lineTo(w/2, 10);
+
+
+        ctx.stroke();
+
+
+        $('#contenuto').offset({top: $('#domanda').offset().top + h/14 + h/9, left: $('#domanda').offset().left});
+        $('#contenuto').css('height', (h - h/14 - h/9).toString() + 'px');
+        $('#contenuto').css('width', (w).toString() + 'px');
+        $('#contenitore_domanda').css('height', (h).toString() + 'px');
+        $('ul').offset({top: $('#domanda').offset().top + h + 10});
+      }
+
+      $( document ).ready(function() {
+        /*
+        $('#header').css('padding-top', ($(window).height() / 6).toString() + 'px');
+        $('#header').css('padding-bottom', ($(window).height() / 6).toString() + 'px');
+
+        console.log($('#header').css('padding-bottom'));
+        */
+        var top_offset = parseInt($('#header').css('padding-bottom'), 10) + parseInt($('#header').css('height'), 10)/2; 
+        $('#cameo').css('top', (0.7 * top_offset).toString() + 'px');
+
+        console.log($(window).height());
+        console.log($('#ente').offset().top);
+
+        var canvas = document.createElement('canvas');
+        canvas.id     = "domanda";
+        canvas.width  = $(window).width() * 0.95;
+        canvas.style = "";
+        canvas.height = $(window).height() - $('#ente').offset().top - parseInt($('#ente').css('height')) - parseInt($('#ente').css('margin-top')) - parseInt($('#ente').css('margin-bottom')) - 50;
+
+        var div = document.createElement('div');
+        div.innerHTML = "<p style='font-size:2vw'>bjkhgdkeugy  dewbweibfruygfr iugfiw bfwehbyu 4g8wegdoiweu gh doiu2y782g2 uybdjhcvw egvwru</p>";
+        div.id = "contenuto";
+        div.style= "display:table-cell; ";
+        //$('#domanda').css('height', ($(window).height() - $('#ente').offset().top - parseInt($('#ente').css('height')) - parseInt($('#ente').css('margin-top')) - parseInt($('#ente').css('margin-bottom')) - 50).toString() + 'px');
+
+        //$('#domanda').css('width', '95vw');
+        document.getElementById('contenitore_domanda').appendChild(canvas);
+        document.getElementById('contenitore_domanda').appendChild(div);
+
+        console.log($('#domanda').css('marginTop'));
+
+        setTimeout(disegna, 50);
+
+      });
+    </script>
+    <!-- [END css] -->
+    <style type="text/css">
+
+      html {
+        overflow-y: hidden;
+      }
+
+      #header {
+        background-image:    url(img/osp.jpg);
+        background-size:     cover;                      /* <------ */
+        background-repeat:   no-repeat;
+        background-position: center center;              /* optional, center the image */
+
+        padding-top: 0px;
+        padding-bottom: 0px;
+      }
+
+      #cameo {
+        border: 8px solid #354d94;
+        position: relative;
+        width: 16vw;
+        height: 16vw;
+      }
+
+      #contenitore_domanda {
+        
+      }
+
+      .container {
+        margin-left: 1%;
+        margin-right: 1%;
+        width: 100%;
+      }
+
+      #dati > h2 {
+        display: inline;
+        font-size: 3vw;
+        color: rgb(150, 150, 150);
+
+      }
+
+      #contenuto {
+        vertical-align: middle;
+
+      }
+
+      #nome {
+        float: left;
+      }
+
+      #ente {
+        float: right;
+      }
+
+      ul > li {
+        height: 50px;
+        display: inline;
+        float: center;
+      }
+
+      ul {
+        margin: 0px;
+      }
+
+      li > img {
+        border: 0 none;
+        display: inline-block;
+        width: auto;
+        max-height: 100%;
+        vertical-align: middle;
+      }
+
+    </style>
+  </head>
+  <body class="text-center">
+    <div class="jumbotron text-center" id="header">
+      <img src="img/minnie.jpg" class="img-circle" id="cameo"/>
+    </div>
+    
+    <div class="container text-center">
+      <div id="dati">
+        <h2 id="nome">Maria Azzurri</h2>
+        <h2 id="ente">Ospedale di Bergamo</h2>
+      </div>
+      
+      <div id="contenitore_domanda"></div>
+      <ul class="list-inline">
+        <li>
+          <img src="img/avisbg.png" class="img-responsive inline-block" alt="Avis Bergamo" />
+        </li>
+        <li>
+          <img src="img/bgscienza.png" class="img-responsive inline-block" alt="BergamoScienza" />
+        </li>
+      </ul>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+
+  </body>
+</html>
+{% endautoescape %}

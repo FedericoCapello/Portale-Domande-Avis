@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <!-- File CSS di Bootstrap -->
+    <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
+    <!-- File jQuery -->
+    <script src="/js/jquery-3.1.0.min.js"></script>
+
+    <!-- Stile -->
+    <style type="text/css">
+      #header {
+        background-color: #354d94;
+        color: white;
+        margin-bottom: 0;
+        padding-top: 20px;
+        padding-bottom: 20px;
+      }
+
+      #descrizione {
+        color: #354d94;
+      }
+
+      #registra {
+        margin-top: 3%;
+      }
+
+      #descrizione-form {
+        margin-left: 5%;
+        margin-right: 5%;
+      }
+
+      #nome-testo, #audio-selfie, #selfie-invia {
+        margin-left: 20%;
+        margin-right: 20%;
+      }
+
+      #invia {
+        background-color: #354d94;
+      }
+
+      #invia:active {
+        background-color: #798cc3;
+        border-color: white;
+      }
+
+      #alert {
+        z-index: 999;
+      }
+
+      .glyphicon.spinning {
+          animation: spin 1s infinite linear;
+          -webkit-animation: spin2 1s infinite linear;
+      }
+
+      @keyframes spin {
+          from { transform: scale(1) rotate(0deg); }
+          to { transform: scale(1) rotate(360deg); }
+      }
+
+      @-webkit-keyframes spin2 {
+          from { -webkit-transform: rotate(0deg); }
+          to { -webkit-transform: rotate(360deg); }
+      }
+
+      textarea {
+        resize: none;
+      }
+
+      form {
+        text-align: center;
+      }
+
+      .row li {
+        height: 50px;
+        
+        float: center;
+      }
+
+      ul {
+        margin-top: 5%
+      }
+
+      img {
+        border: 0 none;
+        display: inline-block;
+        width: auto;
+        max-height: 100%;
+        vertical-align: middle;
+      }
+
+    </style>
+    <script>
+      
+      // Variabili per l'audio
+      var audio_context;
+      var recorder;
+
+      // Variabili per il form
+      var formData = new FormData();
+      var is_audio = false;
+      var upload_url = '{{ form_url }}';
+      var domanda_msg = "Aggiungi una domanda testuale o registrata vocalmente.";
+
+      $( document ).ready(function() {
+
+        // Se il nome non è inserito, quando l'utente ci clicca rimuove la segnalazione di errore
+        $('#nome').focus(function () {
+           $('#nome-ig').removeClass('has-error');
+        });
+
+        // Se la domanda vocale è già stata registrata chiedi all'utente se vuole scrivere invece la domanda testuale
+        $('textarea').focus(function () {
+           if (is_audio) {
+              if (confirm("Hai già registrato la domanda vocale, vuoi scrivere una domanda testuale ed eliminare l'audio?")) {
+                is_audio = false;
+                document.getElementById("recordingslist").innerHTML = "";
+
+              } else {
+                $(this).blur();
+              }
+           }
+        });
+
+      });
+
+      // Inizizalizza l'audio
+      function startUserMedia(stream) {
+        var input = audio_context.createMediaStreamSource(stream);
+        recorder = new Recorder(input);
+      }
+
+      // Inizia a registrare
+      function startRecording(button) {
+
+        // Se è già presente una domanda tesuale chiedi se preferisce invece una vocale
+        if (document.getElementById("domanda_testuale").value != '' ) {
+            if (confirm("Hai già scritto una domanda, vuoi invece registrarla ed eliminare il testo?")) {
+              $('textarea').val('');
+
+            } else {
+              return 0;
+            }
+        }
+
+        recorder && recorder.record();
+        button.disabled = true;
+        button.nextElementSibling.disabled = false;
+        document.getElementById("recordingslist").innerHTML = "";
+        is_audio = false;
+      }
+
+      // Termina la registrazione
+      function stopRecording(button) {
+        recorder && recorder.stop();
+        button.disabled = true;
+        button.previousElementSibling.disabled = false;
+        
+        createDownloadLink();
+        
+        recorder.clear();
+      }
+
+      // Crea il BLOB da caricare e aggiusta l'interfaccia
+      function createDownloadLink() {
+        recorder && recorder.exportWAV(function(blob) {
+          console.log(blob);
+          var url = URL.createObjectURL(blob);
+          var div = document.createElement('div');
+          var au = document.createElement('audio');
+          var br = document.createElement('br');
+          
+          au.controls = true;
+          au.src = url;
+          
+          div.appendChild(br)
+          div.appendChild(au);
+          recordingslist.appendChild(div);
+          formData.append('audio', blob);
+          is_audio = true;
+        });
+      }
+
+      // Accende il form
+      var trigger_form = function() {
+        if ($('#selfie')[0].files[0] || is_audio) {
+          document.getElementById('long-loading').style.display = 'inherit';
+        }
+
+        $.ajax({
+              url: upload_url,
+              data: formData,
+              contentType: false,
+              processData: false,
+
+              success: function (data) {
+                $('#alert').show(400); 
+                $('#nome').val(''); 
+                $('#domanda_testuale').val(''); 
+                document.getElementById("selfie").value = ""; 
+                formData = new FormData(); is_audio = false; 
+                document.getElementById("recordingslist").innerHTML = ""; 
+                setTimeout(function() { $('#alert').hide(400, function() {location.reload();}); }, 2000); 
+                document.getElementById('invia').disabled = false; 
+                document.getElementById('invia').innerHTML = 'Invia!';
+                document.getElementById('long-loading').style.display = 'none';
+              },
+
+              async: true,
+              method: 'POST',
+
+          });
+      }
+
+      // Invia il form
+      var inviaForm = function() {
+          
+          // Controllo degli input
+          if (document.getElementById('stop-button').disabled == false) {
+            $('#stop-button').trigger('click');
+            return 0;
+          }
+
+          if (!document.getElementById("nome").value) {
+            $('#nome-ig').addClass('has-error');
+            location.href = '#nome-ig';
+            return 0;
+          }
+
+          if (!document.getElementById("domanda_testuale").value && !is_audio) {
+            alert(domanda_msg);
+            return 0;
+          }
+
+          document.getElementById('invia').innerHTML = '<span class="glyphicon glyphicon-refresh spinning"></span> Caricando...'
+          document.getElementById('invia').disabled = true;
+
+          // Aggiunge dati
+          formData.append('nome', document.getElementById("nome").value);
+          formData.append('testo', document.getElementById("domanda_testuale").value);
+          formData.append('ente', document.getElementById("ente").innerHTML);
+
+          // Se è presente un'immagine la aggiunge con il relativo orientamento
+          if ($('#selfie')[0].files[0]) {
+            formData.append('image', $('#selfie')[0].files[0]);
+            EXIF.getData($('#selfie')[0].files[0], function() {
+              var ori = EXIF.getTag(this, "Orientation");
+              if (!ori) {
+                ori = 6;
+              }
+              formData.append('ori', ori);
+              trigger_form();
+            });
+          } else {
+            formData.append('ori', 1);
+            trigger_form();
+          }
+          
+      };
+      
+      // Gestisce l'audio all'inizio
+      window.onload = function init() {
+        try {
+          window.AudioContext = window.AudioContext || window.webkitAudioContext;
+          navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+          window.URL = window.URL || window.webkitURL;
+          
+          audio_context = new AudioContext;
+        } catch (e) {
+          document.getElementById('oppure').style.display = 'none';
+          document.getElementById('registra').style.display = 'none';
+          document.getElementById('registra-button').style.display = 'none';
+          document.getElementById('stop-button').style.display = 'none';
+
+          domanda_msg = "Aggiungi una domanda testuale.";
+        }
+        
+        navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
+          document.getElementById('oppure').style.display = 'none';
+          document.getElementById('registra').style.display = 'none';
+          document.getElementById('registra-button').style.display = 'none';
+          document.getElementById('stop-button').style.display = 'none';
+
+          domanda_msg = "Aggiungi una domanda testuale.";
+        });
+      };
+  </script>
+  <script src="/js/recorder.js"></script>
+
+  </head>
+  <body>
+    <!-- Alert di buona riuscita -->
+    <div id="alert" class="alert alert-success" style="position: fixed; width: 100%; border-radius: 0; text-align: center; display: none">
+      <strong>Ottimo!</strong> La tua domanda è stata inviata.
+    </div>
+    <!-- Header -->
+    <div class="jumbotron text-center" id="header">
+      <h1><b>La Malattia del Secolo</b></h1>
+      <h3 id="ente" style="">{{ente}}</h3>
+    </div>
+    <!-- Corpo centrale -->
+    <div class="container text-center">
+      <h3 id="descrizione">Fai una domanda!</h3>
+      <hr id="descrizione-form">
+      <div class="row">
+        <div class="col-sm-12">
+          <!-- Form -->
+          <div id="form" role="form" id="aggiungi">
+            <!-- Nome -->
+            <div class="input-group" id="nome-ig">
+              <span class="input-group-addon glyphicon glyphicon-user"></span>
+              <input type="text" class="form-control" placeholder="Inserisci il tuo nome" aria-describedby="basic-addon1" name="nome" id="nome" required>
+            </div>
+          
+            <hr id="nome-testo">
+            <div id="testo-audio">
+              <div class = "form-group">
+                <!-- Testo -->
+                <textarea class="form-control" rows="3" placeholder="Aggiungi una domanda testuale. Eventualmente, indirizzala a un relatore. (max 350 caratteri)" maxlength="350" id="domanda_testuale"></textarea>
+              </div>
+
+              <h5 id="oppure"><i>-- Oppure --</i></h5>
+              <h4 id="registra">Registra la domanda</h4>
+              <!-- Audio -->
+              <button onclick="startRecording(this);" class="btn btn-default" id="registra-button">Registra</button>
+              <button onclick="stopRecording(this);" class="btn btn-default" id="stop-button" disabled>Stop</button>
+              <div id="recordingslist"></div>
+            </div>
+            <hr id="audio-selfie">
+
+            <h4 id="registra">Aggiungi, se vuoi, un tuo selfie</h4>
+            <!-- Selfie -->
+            <label class="btn btn-default btn-file text-center">
+              <input type="file" accept="image/*;capture=camera" capture="camera" id="selfie">
+            </label>
+
+            <hr id="selfie-invia">
+            <!-- Invia -->
+            <button id="invia" onclick="inviaForm();" class="btn btn-primary btn-lg" >
+              Invia!
+            </button>
+            <p class="text-info" style="margin-top: 10px; padding-left: 5%; padding-right: 5%; display: none" id="long-loading">Attendi, il caricamento della domanda potrebbe essere lungo.</p>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <!-- Loghi -->
+        <div id="small-img" class="col-xs-12 col-sm-12 col-md-12 col-lg-12 center">
+          <ul class="list-inline">
+            <li>
+              <img src="/img/avisbg.png" class="img-responsive inline-block" alt="Avis Bergamo" />
+            </li>
+            <li>
+              <img src="/img/bgscienza.png" class="img-responsive inline-block" alt="BergamoScienza" />
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Aggiunge ulteriori Script -->
+    <script src="/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/load-image.all.min.js"></script>
+    <script type="text/javascript" src="/js/exif.js"></script>
+  </body>
+</html>
+{% endautoescape %}

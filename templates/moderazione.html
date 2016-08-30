@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <!-- CSS Bootstrap -->
+    <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
+    <!-- jQuery -->
+    <script src="/js/jquery-3.1.0.min.js"></script>
+    <script src='/_ah/channel/jsapi'></script>
+    
+    <script type="text/javascript">
+      // Restituisce l'HTML dello stato corrispondente
+      function stato_to_html(n) {
+        switch (n) {
+          case 0:
+              return "<span class='glyphicon glyphicon-repeat' aria-hidden='true'></span>";
+          case 1:
+              return "<span class='glyphicon glyphicon-ok' aria-hidden='true'>";
+          case 2:
+              return "<span class='glyphicon glyphicon-ok' aria-hidden='true'></span>&emsp;&emsp;<span class='glyphicon glyphicon-remove' aria-hidden='true'></span>";
+          case 3:
+              return "<span class='glyphicon glyphicon-send' aria-hidden='true'></span>&emsp;&emsp;<span class='glyphicon glyphicon-remove' aria-hidden='true'></span>";
+          case 4:
+              return "<b>Sullo Schermo</b>";
+          default:
+              return ""
+        }
+      }
+
+      $( document ).ready(function() {
+
+          var counts = {
+            '0': 0,
+            '1': 0,
+            '2': 0,
+            '3': 0,
+            '4': 0
+          }
+
+          var altro_i = 0
+
+          // Conta il numero di domande per stato
+          var updateStates = function() {
+            counts['0'] = $('tr[data-stato=0]').length;
+            counts['1'] = $('tr[data-stato=1]').length;
+            counts['2'] = $('tr[data-stato=2]').length;
+            counts['3'] = $('tr[data-stato=3]').length;
+            counts['4'] = $('tr[data-stato=4]').length;
+          }
+
+          updateStates();
+
+          // Aggiusta il testo se è troppo lungo
+          $(".testo").each(function() {
+            var testo = $(this).html();
+            if (testo.length > 101) {
+              var new_html = testo.substring(0, 100) + '<div id="altro' + altro_i .toString()+ '" class="collapse" >' + testo.substring(100) + '</div>&nbsp;<a data-toggle="collapse" href="#altro' + altro_i .toString()+ '"><span style="font-size:90%" class="glyphicon glyphicon-text-height" aria-hidden="true">';
+              altro_i = altro_i + 1;
+              $(this).html(new_html);
+            }
+          });
+
+          $("tr[data-stato=4]").addClass("info");
+          $("tr[data-stato=1]").css("opacity", 0.5);
+
+          // Gestisce la moderazione per il click su OK
+          $("tbody").on("click", ".glyphicon-ok", function() {
+            $(this).closest("tr").css('opacity', 1);
+
+            var go_to = counts['4'] + counts['3'];
+            var websafeKey = $(this).closest("tr").attr('data-key');
+
+            counts[$(this).closest("tr").attr('data-stato')] = counts[$(this).closest("tr").attr('data-stato')] - 1;
+            $(this).closest("tr").attr('data-stato', '3');
+
+            $(this).closest('tr').insertBefore('tbody > tr:eq(' + go_to.toString() + ')');
+            counts['3'] = counts['3'] + 1;
+
+
+            $(this).parent("td").html(stato_to_html(3));
+
+            $.ajax({
+              url: '/update',
+              data: {'websafeKey': websafeKey, 'stato': 3},
+              async: true,
+              method: 'GET',
+
+            });
+          });
+
+          // Gestisce la moderazione per il click su REMOVE
+          $("tbody").on("click", ".glyphicon-remove", function() {
+            var websafeKey = $(this).closest("tr").attr('data-key');
+
+            var go_to = counts['4'] + counts['3'] + counts['2'] + counts['1'] - 1;
+
+            counts[$(this).closest("tr").attr('data-stato')] = counts[$(this).closest("tr").attr('data-stato')] - 1;
+
+            $(this).closest("tr").attr('data-stato', 1);
+            $(this).closest("tr").css('opacity', 0.5);
+
+            $(this).closest('tr').insertAfter('tbody > tr:eq(' + go_to.toString() + ')');
+            counts['1'] = counts['1'] + 1;
+
+            $(this).parent("td").html(stato_to_html(1));
+
+            $.ajax({
+              url: '/update',
+              data: {'websafeKey': websafeKey, 'stato': 1},
+              async: true,
+              method: 'GET',
+
+            });
+          });
+
+          // Gestisce la moderazione per il click su SEND
+          $("tbody").on("click", ".glyphicon-send", function() {
+            var websafeKeyA = $(this).closest("tr").attr('data-key');
+            var websafeKeyB = $("tr[data-stato=4]").attr('data-key');
+
+            var go_to = counts['4'] + counts['3'] + counts['2'] + counts['1'] + counts['0'] - 1;
+
+            $("tr[data-stato=4]").insertAfter('tbody > tr:eq(' + go_to.toString() + ')');
+
+            if( $('tr[data-stato=4]').length )
+            {
+              counts['0'] = counts['0'] + 1;
+            }
+
+            $("tr[data-stato=4]").removeClass("info");
+            $("tr[data-stato=4]").children('#azioni').html(stato_to_html(0));
+            $("tr[data-stato=4]").attr('data-stato', 0);
+
+            $(this).closest("tr").insertBefore('tbody > tr:eq(' + (0).toString() + ')');
+            counts['4'] = 1;
+            counts['3'] = counts['3'] - 1;
+
+            $(this).closest("tr").attr('data-stato', 4);
+            $(this).parent("td").html(stato_to_html(4));
+            $("tr[data-stato=4]").addClass("info");
+
+            $.ajax({
+              url: '/update',
+              data: {'websafeKey': websafeKeyA, 'stato': 4},
+              async: true,
+              method: 'GET',
+
+            });
+
+            $.ajax({
+              url: '/update',
+              data: {'websafeKey': websafeKeyB, 'stato': 0},
+              async: true,
+              method: 'GET',
+
+            });
+          });
+
+          // Gestisce la moderazione per il click su REPEAT
+          $("tbody").on("click", ".glyphicon-repeat", function() {
+            var websafeKeyA = $(this).closest("tr").attr('data-key');
+            var websafeKeyB = $("tr[data-stato=4]").attr('data-key');
+
+            var go_to = counts['4'] + counts['3'] + counts['2'] + counts['1'] + counts['0'] - 1;
+
+            $("tr[data-stato=4]").insertAfter('tbody > tr:eq(' + (counts['4'] + counts['3'] + counts['2'] + counts['1']).toString() + ')');
+
+            $("tr[data-stato=4]").removeClass("info");
+            $("tr[data-stato=4]").children('#azioni').html(stato_to_html(0));
+            $("tr[data-stato=4]").attr('data-stato', 0);
+
+            $(this).closest("tr").insertBefore('tbody > tr:eq(' + (0).toString() + ')');
+            
+            console.log(counts['4'] + counts['3'] + counts['2'] + counts['1']);
+
+            $(this).closest("tr").attr('data-stato', 4);
+            $(this).parent("td").html(stato_to_html(4));
+            $("tr[data-stato=4]").addClass("info");
+
+            $.ajax({
+              url: '/update',
+              data: {'websafeKey': websafeKeyA, 'stato': 4},
+              async: true,
+              method: 'GET',
+
+            });
+
+            $.ajax({
+              url: '/update',
+              data: {'websafeKey': websafeKeyB, 'stato': 0},
+              async: true,
+              method: 'GET',
+
+            });
+          });
+
+          // Gestisce l'arrivo di una nuova domanda, aggiungendola alla moderazione
+          onMessage = function(m) {
+            var new_index = $('tr[data-stato=4]').length + $('tr[data-stato=3]').length;
+            var data = JSON.parse(m.data);
+            console.log(data);
+
+            var is_selfie = 'selfie_url' in data;
+            var is_audio = 'audio_key' in data;
+
+            var table_body = document.getElementById("domande");
+
+            if (is_selfie) {
+              var nuova_domanda = table_body.insertRow(new_index);
+
+              nuova_domanda.setAttribute('data-stato', '2');
+              nuova_domanda.setAttribute('data-key', data.websafeKey);
+
+              var avatar = nuova_domanda.insertCell(0);
+              var nome = nuova_domanda.insertCell(1);
+              var ente = nuova_domanda.insertCell(2);
+              var contenuto = nuova_domanda.insertCell(3);
+              var azioni = nuova_domanda.insertCell(4);
+
+              azioni.setAttribute('id', 'azioni')
+
+              avatar.innerHTML = '<img src="' + data.selfie_url +'" class="img-circle" id="avatar"/>';
+              nome.innerHTML = data.nome;
+              ente.innerHTML = data.ente;
+              azioni.innerHTML = '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>&emsp;&emsp;<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>';
+
+              if (is_audio) {
+                contenuto.innerHTML = '<audio controls="controls"><source src="{{base}}/audio/' + data.audio_key + '" type="audio/wav"></audio>';
+
+              } else {
+                contenuto.class = "testo";
+                var html_domanda = data.testo_domanda;
+
+                if (data.testo_domanda.length > 101) {
+                  html_domanda = data.testo_domanda.substring(0, 100) + '<div id="altro' + altro_i .toString()+ '" class="collapse" >' + data.testo_domanda.substring(100) + '</div>&nbsp;<a data-toggle="collapse" href="#altro' + altro_i .toString()+ '"><span style="font-size:90%" class="glyphicon glyphicon-text-height" aria-hidden="true">';
+                  altro_i = altro_i + 1;
+                }
+                contenuto.innerHTML = html_domanda;
+
+              }
+            }
+          };
+
+          // Apre il canale di agiornamento
+          openChannel = function() {
+            var token = '{{ token }}';
+
+            var channel = new goog.appengine.Channel('{{ token }}');
+            var handler = {
+              'onopen': function() {},
+              'onmessage': onMessage,
+              'onerror': function() {},
+              'onclose': function() {}
+            };
+            var socket = channel.open(handler);
+    
+          };
+          
+          initialize = function() {
+            openChannel();
+            
+          };
+          setTimeout(initialize, 100);
+
+          });
+    </script>
+    <!-- Stile CSS -->
+    <style type="text/css">
+
+      #header {
+        background-color: #354d94;
+        color: white;
+        margin-bottom: 5px;
+        padding-top: 15px;
+        padding-bottom: 15px;
+      }
+
+      #avatar {
+        height: 60px;
+      }
+
+      .glyphicon {
+        font-size: 250%;
+      }
+
+      .glyphicon-remove {
+        color: red;
+      }
+
+      .glyphicon-ok {
+        color: green;
+      }
+
+      .glyphicon-repeat {
+        color: orange;
+      }
+
+      .glyphicon-send {
+        color: blue;
+      }
+
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div class="jumbotron text-center" id="header">
+      <h2><b>Moderazione</b></h2>
+    </div>
+    <div class="container">
+      <!-- Tabella domande -->
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Avatar</th>
+            <th>Nome</th>
+            <th>Ente</th>
+            <th>Contenuto</th>
+            <th>Azioni</th>
+          </tr>
+        </thead>
+        <tbody id="domande">
+        <!-- Mostra una nuova domanda appropriately -->
+        {% for domanda in domande %}
+          <tr data-stato="{{ domanda.stato }}" data-key="{{ domanda.websafeKey }}" id="domanda">
+            <td><img src="{{ domanda.selfie_url }}" class="img-circle" id="avatar"/></td>
+            <td>{{ domanda.nome }}</td>
+            <td>{{ domanda.ente }}</td>
+          {% if domanda.testo_domanda == None %}
+            <td><audio controls="controls"><source src="{{base}}/audio/{{ domanda.audio_key }}" type="audio/wav"></audio></td>
+          {% else %}
+            <td class="testo">{{ domanda.testo_domanda }}</td>
+          {% endif %}
+
+          {% if domanda.stato == 0 %}
+            <td id="azioni"><span class="glyphicon glyphicon-repeat" aria-hidden="true"></span></td>
+          {% elif domanda.stato == 1 %}
+            <td id="azioni"><span class="glyphicon glyphicon-ok" aria-hidden="true"></td>
+          {% elif domanda.stato == 2 %}
+            <td id="azioni"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span>&emsp;&emsp;<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></td>
+          {% elif domanda.stato == 3 %}
+            <td id="azioni"><span class="glyphicon glyphicon-send" aria-hidden="true"></span>&emsp;&emsp;<span class="glyphicon glyphicon-remove" aria-hidden="true"></span></td>
+          {% else %}
+            <td id="azioni"><b>Sullo Schermo</b></td>
+          {% endif %}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Include Bootstrap -->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+
+  </body>
+</html>
+{% endautoescape %}
