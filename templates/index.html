@@ -4,8 +4,15 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
+    <title>La Sclerosi Multipla: dalla Ricerca alla Pratica</title>
     <!-- File CSS di Bootstrap -->
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
+    <script type="text/javascript">
+    if (window.location.href.indexOf(".avisbg") != -1) {
+        var url = window.location.href.split('/');
+        window.location.href = 'https://bergamoscienza.ternet.it/domande/' + url[url.length - 1]; 
+      }
+    </script>
     <!-- File jQuery -->
     <script src="/js/jquery-3.1.0.min.js"></script>
 
@@ -32,7 +39,7 @@
         margin-right: 5%;
       }
 
-      #nome-testo, #audio-selfie, #selfie-invia {
+      #nome-testo, #audio-selfie, #selfie-email, #email-invia {
         margin-left: 20%;
         margin-right: 20%;
       }
@@ -48,6 +55,17 @@
 
       #alert {
         z-index: 999;
+      }
+
+      #email-ig {
+        margin-bottom: 2%;
+      }
+
+      #details {
+        margin-left: 15%;
+        margin-right: 15%;
+        float: center;
+        color: rgb(120,120,120);
       }
 
       .glyphicon.spinning {
@@ -126,30 +144,44 @@
 
       });
 
+      function eventFire(el, etype){
+        if (el.fireEvent) {
+          el.fireEvent('on' + etype);
+        } else {
+          var evObj = document.createEvent('Events');
+          evObj.initEvent(etype, true, false);
+          el.dispatchEvent(evObj);
+        }
+      };
+
       // Inizizalizza l'audio
       function startUserMedia(stream) {
         var input = audio_context.createMediaStreamSource(stream);
         recorder = new Recorder(input);
-      }
+      };
 
       // Inizia a registrare
       function startRecording(button) {
-
         // Se è già presente una domanda tesuale chiedi se preferisce invece una vocale
-        if (document.getElementById("domanda_testuale").value != '' ) {
-            if (confirm("Hai già scritto una domanda, vuoi invece registrarla ed eliminare il testo?")) {
-              $('textarea').val('');
-
-            } else {
-              return 0;
-            }
-        }
-
         recorder && recorder.record();
         button.disabled = true;
         button.nextElementSibling.disabled = false;
         document.getElementById("recordingslist").innerHTML = "";
         is_audio = false;
+      };
+
+      function pre_startRecording(button) {
+        // Pre -> Se è già presente una domanda tesuale chiedi se preferisce invece una vocale
+        if (document.getElementById("domanda_testuale").value != '' ) {
+            if (confirm("Hai già scritto una domanda, vuoi invece registrarla ed eliminare il testo?")) {
+              $('textarea').val('');
+              return 0;
+            } else {
+              return 0;
+            }
+        } else {
+          startRecording(button);
+        }
       }
 
       // Termina la registrazione
@@ -198,7 +230,8 @@
               success: function (data) {
                 $('#alert').show(400); 
                 $('#nome').val(''); 
-                $('#domanda_testuale').val(''); 
+                $('#domanda_testuale').val('');
+                $('#email').val('');  
                 document.getElementById("selfie").value = ""; 
                 formData = new FormData(); is_audio = false; 
                 document.getElementById("recordingslist").innerHTML = ""; 
@@ -216,7 +249,6 @@
 
       // Invia il form
       var inviaForm = function() {
-          
           // Controllo degli input
           if (document.getElementById('stop-button').disabled == false) {
             $('#stop-button').trigger('click');
@@ -238,23 +270,16 @@
           document.getElementById('invia').disabled = true;
 
           // Aggiunge dati
-          formData.append('nome', document.getElementById("nome").value);
-          formData.append('testo', document.getElementById("domanda_testuale").value);
+          formData.append('nome', encodeURIComponent(document.getElementById("nome").value));
+          formData.append('testo', encodeURIComponent(document.getElementById("domanda_testuale").value));
+          formData.append('email', document.getElementById("email").value);
           formData.append('ente', document.getElementById("ente").innerHTML);
 
           // Se è presente un'immagine la aggiunge con il relativo orientamento
           if ($('#selfie')[0].files[0]) {
             formData.append('image', $('#selfie')[0].files[0]);
-            EXIF.getData($('#selfie')[0].files[0], function() {
-              var ori = EXIF.getTag(this, "Orientation");
-              if (!ori) {
-                ori = 6;
-              }
-              formData.append('ori', ori);
-              trigger_form();
-            });
+            trigger_form();
           } else {
-            formData.append('ori', 1);
             trigger_form();
           }
           
@@ -276,7 +301,15 @@
 
           domanda_msg = "Aggiungi una domanda testuale.";
         }
-        
+
+        if (navigator.getUserMedia == null) {
+          document.getElementById('oppure').style.display = 'none';
+          document.getElementById('registra').style.display = 'none';
+          document.getElementById('registra-button').style.display = 'none';
+          document.getElementById('stop-button').style.display = 'none';
+          domanda_msg = "Aggiungi una domanda testuale.";
+        }
+
         navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
           document.getElementById('oppure').style.display = 'none';
           document.getElementById('registra').style.display = 'none';
@@ -297,7 +330,7 @@
     </div>
     <!-- Header -->
     <div class="jumbotron text-center" id="header">
-      <h1><b>La Malattia del Secolo</b></h1>
+      <h1><b>La Sclerosi Multipla:<br> dalla Ricerca alla Pratica</b></h1>
       <h3 id="ente" style="">{{ente}}</h3>
     </div>
     <!-- Corpo centrale -->
@@ -318,13 +351,13 @@
             <div id="testo-audio">
               <div class = "form-group">
                 <!-- Testo -->
-                <textarea class="form-control" rows="3" placeholder="Aggiungi una domanda testuale. Eventualmente, indirizzala a un relatore. (max 350 caratteri)" maxlength="350" id="domanda_testuale"></textarea>
+                <textarea class="form-control" rows="3" placeholder="Aggiungi una domanda testuale. Eventualmente, indirizzala a un relatore. (max 350 caratteri)" maxlength="350" id="domanda_testuale" wrap=""></textarea>
               </div>
 
               <h5 id="oppure"><i>-- Oppure --</i></h5>
               <h4 id="registra">Registra la domanda</h4>
               <!-- Audio -->
-              <button onclick="startRecording(this);" class="btn btn-default" id="registra-button">Registra</button>
+              <button onclick="pre_startRecording(this);" class="btn btn-default" id="registra-button">Registra</button>
               <button onclick="stopRecording(this);" class="btn btn-default" id="stop-button" disabled>Stop</button>
               <div id="recordingslist"></div>
             </div>
@@ -335,8 +368,23 @@
             <label class="btn btn-default btn-file text-center">
               <input type="file" accept="image/*;capture=camera" capture="camera" id="selfie">
             </label>
+            <hr id="selfie-email">
 
-            <hr id="selfie-invia">
+            <!-- Email -->
+            <h4 id="email-text">Specifica, se vuoi, una mail</h4>
+
+            <div id="email-container" class="collapse" >
+              <h5 id="details"><i>I relatori potrebbero non rispondere alla tua domanda in diretta, ma lo faranno se lascerai loro un indirizzo email</i></h5>
+              <div class="input-group" id="email-ig">
+                <span class="input-group-addon glyphicon glyphicon-envelope"></span>
+                <input type="email" class="form-control" placeholder="Inserisci la tua email" aria-describedby="basic-addon1" name="email" id="email">
+              </div>
+            </div>
+            <a data-toggle="collapse" href="#email-container">
+              <span style="font-size:x-large" class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
+            </a>
+
+            <hr id="email-invia">
             <!-- Invia -->
             <button id="invia" onclick="inviaForm();" class="btn btn-primary btn-lg" >
               Invia!
@@ -362,8 +410,7 @@
 
     <!-- Aggiunge ulteriori Script -->
     <script src="/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="/js/load-image.all.min.js"></script>
-    <script type="text/javascript" src="/js/exif.js"></script>
+    
   </body>
 </html>
 {% endautoescape %}

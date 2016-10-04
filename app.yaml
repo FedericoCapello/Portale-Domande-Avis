@@ -17,7 +17,7 @@ handlers:
 
 - url: .*
   script: avis.app
-  secure: always
+  secure: optional
 # [FINE handlers]
 
 # [INIZIO librerie]

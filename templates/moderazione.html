@@ -4,6 +4,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
+    <title>Moderazione</title>
     <!-- CSS Bootstrap -->
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
     <!-- jQuery -->
@@ -52,14 +53,31 @@
 
           updateStates();
 
+          function replaceAll(str, find, replace) {
+            return str.replace(new RegExp(find, 'g'), replace);
+          }
+
+          function fix_text(text) {
+            return unescape(replaceAll(text.replace(/(\r\n|\n|\r)/gm,""), '=', ''));
+          }
+
           // Aggiusta il testo se è troppo lungo
           $(".testo").each(function() {
-            var testo = $(this).html();
+            var testo = $(this).text();
             if (testo.length > 101) {
-              var new_html = testo.substring(0, 100) + '<div id="altro' + altro_i .toString()+ '" class="collapse" >' + testo.substring(100) + '</div>&nbsp;<a data-toggle="collapse" href="#altro' + altro_i .toString()+ '"><span style="font-size:90%" class="glyphicon glyphicon-text-height" aria-hidden="true">';
+              var new_html = fix_text(testo.substring(0, 100)) + '<div id="altro' + altro_i .toString()+ '" class="collapse" >' + fix_text(testo.substring(100)) + '</div>&nbsp;<a data-toggle="collapse" href="#altro' + altro_i .toString()+ '"><span style="font-size:90%" class="glyphicon glyphicon-text-height" aria-hidden="true">';
               altro_i = altro_i + 1;
               $(this).html(new_html);
+            } else {
+              var to_translate = fix_text($(this).text())
+              $(this).text(to_translate);
             }
+          });
+
+          // Gestisce la comparsa della mail al click sulla foto
+          $("tbody").on("click", ".img-circle", function() {
+            var email = $(this).attr('data-email');
+            if (email != 'None') {alert(email);}
           });
 
           $("tr[data-stato=4]").addClass("info");
@@ -200,7 +218,6 @@
           onMessage = function(m) {
             var new_index = $('tr[data-stato=4]').length + $('tr[data-stato=3]').length;
             var data = JSON.parse(m.data);
-            console.log(data);
 
             var is_selfie = 'selfie_url' in data;
             var is_audio = 'audio_key' in data;
@@ -219,9 +236,10 @@
               var contenuto = nuova_domanda.insertCell(3);
               var azioni = nuova_domanda.insertCell(4);
 
-              azioni.setAttribute('id', 'azioni')
+              azioni.setAttribute('id', 'azioni');
 
-              avatar.innerHTML = '<img src="' + data.selfie_url +'" class="img-circle" id="avatar"/>';
+
+              avatar.innerHTML = '<img src="' + data.selfie_url +'" class="img-circle" id="avatar" data-email="' + data.email + '"/>';
               nome.innerHTML = data.nome;
               ente.innerHTML = data.ente;
               azioni.innerHTML = '<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>&emsp;&emsp;<span class="glyphicon glyphicon-remove" aria-hidden="true"></span>';
@@ -231,10 +249,10 @@
 
               } else {
                 contenuto.class = "testo";
-                var html_domanda = data.testo_domanda;
+                var html_domanda = fix_text(data.testo_domanda);
 
                 if (data.testo_domanda.length > 101) {
-                  html_domanda = data.testo_domanda.substring(0, 100) + '<div id="altro' + altro_i .toString()+ '" class="collapse" >' + data.testo_domanda.substring(100) + '</div>&nbsp;<a data-toggle="collapse" href="#altro' + altro_i .toString()+ '"><span style="font-size:90%" class="glyphicon glyphicon-text-height" aria-hidden="true">';
+                  html_domanda = fix_text(data.testo_domanda.substring(0, 100)) + '<div id="altro' + altro_i .toString()+ '" class="collapse" >' + fix_text(data.testo_domanda.substring(100)) + '</div>&nbsp;<a data-toggle="collapse" href="#altro' + altro_i .toString()+ '"><span style="font-size:90%" class="glyphicon glyphicon-text-height" aria-hidden="true">';
                   altro_i = altro_i + 1;
                 }
                 contenuto.innerHTML = html_domanda;
@@ -275,6 +293,7 @@
         margin-bottom: 5px;
         padding-top: 15px;
         padding-bottom: 15px;
+        width: 100%;
       }
 
       #avatar {
@@ -324,7 +343,7 @@
         <!-- Mostra una nuova domanda appropriately -->
         {% for domanda in domande %}
           <tr data-stato="{{ domanda.stato }}" data-key="{{ domanda.websafeKey }}" id="domanda">
-            <td><img src="{{ domanda.selfie_url }}" class="img-circle" id="avatar"/></td>
+            <td><img src="{{ domanda.selfie_url }}" class="img-circle" data-email="{{ domanda.email }}" id="avatar"/></td>
             <td>{{ domanda.nome }}</td>
             <td>{{ domanda.ente }}</td>
           {% if domanda.testo_domanda == None %}

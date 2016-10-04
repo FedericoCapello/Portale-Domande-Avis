@@ -4,6 +4,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="utf-8">
+    <title>Avis Bergamo</title>
     <!-- Foglio CSS Bootstrap -->
     <link type="text/css" rel="stylesheet" href="/bootstrap/css/bootstrap.css">
     <!-- jQuery -->
@@ -11,15 +12,27 @@
     <script src='/_ah/channel/jsapi'></script>
     <script type="text/javascript">
 
+		function replaceAll(str, find, replace) {
+		    return str.replace(new RegExp(find, 'g'), replace);
+		  }
+
+		  function fix_text(text) {
+		    return unescape(replaceAll(text.replace(/(\r\n|\n|\r)/gm,""), '=', ''));
+		  }
+
       $( document ).ready(function() {
 
-        var top_offset = parseInt($('#header').css('padding-bottom'), 10) + parseInt($('#header').css('height'), 10)/2; 
+        var top_offset = parseInt($('#header').css('padding-bottom'), 10) + parseInt($('#header').css('height'), 10)/2;
         $('#cameo').css('top', (0.7 * top_offset).toString() + 'px');
+
+        $("#contenuto").each(function() {
+            var to_translate = fix_text($(this).text());
+            $(this).text(to_translate);
+	    });
 
         // Gestisce l'arrivo di una domanda da mostrare
         onMessage = function(m) {
             var data = JSON.parse(m.data);
-            console.log(data);
 
             $('#header').css("background-image", "url(" + data.background_url + ")");
 
@@ -38,10 +51,10 @@
               $("#cameo").attr("src",data.selfie_url);
 
               if (is_audio) {
-                document.getElementById('domanda').innerHTML = '<audio controls="controls" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 3000);"><source src="{{base}}/audio/'+ data.audio_key +'" type="audio/wav" ></audio>';
+                document.getElementById('domanda').innerHTML = '<audio controls="controls" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 500);"><source src="{{base}}/audio/'+ data.audio_key +'" type="audio/wav" ></audio>';
 
               } else {
-                document.getElementById('domanda').innerHTML = '<h2 id="contenuto">' + data.testo_domanda + '</h2>';
+                document.getElementById('domanda').innerHTML = '<h2 id="contenuto">' + fix_text(data.testo_domanda) + '</h2>';
 
               }
             }
@@ -59,15 +72,15 @@
               'onclose': function() {}
             };
             var socket = channel.open(handler);
-    
+
           };
-          
+
           initialize = function() {
             openChannel();
-            
+
           };
           setTimeout(initialize, 110);
- 
+
 
       });
     </script>
@@ -80,15 +93,15 @@
         background-repeat:   no-repeat;
         background-position: center center;              /* optional, center the image */
 
-        padding-top: 1%;
+        padding-top: 2.5%;
         padding-bottom: 0px;
       }
 
       #cameo {
-        border: 8px solid #354d94;
+        border: 8.5px solid #354d94;
         position: relative;
-        width: 16vw;
-        height: 16vw;
+        width: 17vw;
+        height: 17vw;
         min-width: 180px;
         min-height: 180px;
       }
@@ -102,13 +115,13 @@
 
       #domanda {
         border-style: solid;
-        border-width: 87px 60px 37px 60px;
-        -moz-border-image: url(img/new_text_cloud.png) 87 60 37 60 repeat;
-        -webkit-border-image: url(img/new_text_cloud.png) 87 60 37 60 repeat;
-        -o-border-image: url(img/new_text_cloud.png) 87 60 37 60 repeat;
-        border-image: url(img/new_text_cloud.png) 87 60 37 60 fill repeat;
+        border-width: 87px 30px 30px 30px;
+        -moz-border-image: url(img/new_text_cloud.png) 87 30 30 30 repeat;
+        -webkit-border-image: url(img/new_text_cloud.png) 87 30 30 30 repeat;
+        -o-border-image: url(img/new_text_cloud.png) 87 30 30 30 repeat;
+        border-image: url(img/new_text_cloud.png) 87 30 30 30 fill repeat;
 
-        margin-top: 80px;
+        margin-top: 60px;
       }
 
 
@@ -131,7 +144,7 @@
       }
 
       ul {
-        margin-top: 7vh;
+        margin-top: 5.7vh;
       }
 
       li > img {
@@ -171,11 +184,11 @@
     </div>
     <!-- Contenuto domanda -->
     <div class="container text-center">
-      {% if domanda.testo_domanda == "" %}
+      {% if domanda.audio_key %}
         <div id="domanda"><audio controls="controls" onloadeddata="var audioPlayer = this; setTimeout(function() { audioPlayer.play(); }, 3000);"><source src="{{base}}/audio/{{ domanda.audio_key }}" type="audio/wav"></audio></div>
       {% else %}
         <div id="domanda"><h2 id="contenuto">{{ domanda.testo_domanda }}</h2></div>
-      {% endif %}      
+      {% endif %}
     </div>
     <!-- Loghi -->
     <footer>

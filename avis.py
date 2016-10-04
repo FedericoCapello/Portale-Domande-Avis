@@ -7,8 +7,8 @@ app = webapp2.WSGIApplication([
     ('/inserisci_domanda', handlers.InserisciDomandaHandler),
     ('/get_upload_url', handlers.GetUploadUrlHandler),
     ('/audio/([^/]+)?', handlers.AudioHandler),
-    ('/ente/([^/]+)?', handlers.EnteHandler),
+    ('/domande/([^/]+)?', handlers.EnteHandler),
     ('/moderazione', handlers.ModerazioneHandler),
     ('/update', handlers.UpdateStatoHandler),
-    ('/mostra', handlers.MostraHandler)
+    ('/mostra', handlers.MostraHandler),
 ], debug=True)
