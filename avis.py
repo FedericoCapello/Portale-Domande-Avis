@@ -11,4 +11,5 @@ app = webapp2.WSGIApplication([
     ('/moderazione', handlers.ModerazioneHandler),
     ('/update', handlers.UpdateStatoHandler),
     ('/mostra', handlers.MostraHandler),
-], debug=True)
+    ('/.well-known/acme-challenge/([\w-]+)', handlers.LetsEncryptHandler),
+], debug=False)

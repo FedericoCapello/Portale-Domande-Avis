@@ -25,30 +25,32 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 # Dizionario che collega la tipologia di ente al selfie di default se non specificato
 DEFAULT_SELFIE = {
-    'Test': 'img/minnie.jpg',
-    '': 'img/minnie.jpg',
-    'bicocca': 'img/minnie.jpg',
-    'Papa Gio': 'img/minnie.jpg',
-    'Bolognini': 'img/minnie.jpg',
-    'CA.RI.S.M.A.': 'img/minnie.jpg',
-    'Mascheroni': 'img/minnie.jpg',
-    'Leo da Vinci': 'img/minnie.jpg',
-    'Lussana': 'img/minnie.jpg',
-    'Salesiani': 'img/minnie.jpg'
+    'Test': 'img/heart.jpg',
+    '': 'img/heart.jpg',
+    'bicocca': 'img/heart.jpg',
+    'Papa Gio': 'img/heart.jpg',
+    'Bolognini': 'img/heart.jpg',
+    'CA.RI.S.M.A.': 'img/heart.jpg',
+    'Mascheroni': 'img/heart.jpg',
+    'Leo da Vinci': 'img/heart.jpg',
+    'Lussana': 'img/heart.jpg',
+    'Salesiani': 'img/heart.jpg',
+    'A.I.S.M.': 'img/heart.jpg'
 }
 
 # Dizionario che collega la tipologia di ente all'immagine di background
 BACKGROUND_IMAGES = {
-    'Test': 'img/osp.jpg',
+    'Test': 'img/avis.jpg',
     'bicocca': 'img/bicocca.jpg',
-    '': 'img/osp.jpg',
+    '': 'img/avis.jpg',
     'Papa Gio': 'img/papa_giovanni.jpg',
     'Bolognini': 'img/bolognini.jpg',
     'CA.RI.S.M.A.': 'img/carisma.jpg',
     'Mascheroni': 'img/mascheroni.jpg',
     'Leo da Vinci': 'img/leonardo_da_vinci.jpg',
     'Lussana': 'img/lussana.jpg',
-    'Salesiani': 'img/salesiani.jpg'
+    'Salesiani': 'img/salesiani.jpg',
+    'A.I.S.M.': 'img/aism.jpg'
 }
 
 # Dizionario che collega la tipologia di ente alla sua denominazione estesa
@@ -62,7 +64,8 @@ ENTE_TO_STR = {
     'Mascheroni': 'L. S. Mascheroni',
     'Leo da Vinci': 'Ist. L. Da Vinci',
     'Lussana': 'L. S. Lussana',
-    'Salesiani': 'Ist. "Don Bosco" Treviglio'
+    'Salesiani': 'Ist. "Don Bosco" Treviglio',
+    'A.I.S.M.': 'A.I.S.M.'
 
 }
 
@@ -77,20 +80,22 @@ STR_TO_ENTE = {
     'L. S. Mascheroni': 'Mascheroni',
     'Ist. L. Da Vinci': 'Leo da Vinci',
     'L. S. Lussana': 'Lussana',
-    'Ist. "Don Bosco" Treviglio': 'Salesiani'
+    'Ist. "Don Bosco" Treviglio': 'Salesiani',
+    'A.I.S.M.': 'A.I.S.M.'
 }
 
 # Dizionario che collega url di un ente al suo nome contratto
 URL_TO_ENTE = {
     'bicocca': 'bicocca',
     '': '',
-    'papagiovanni': 'Papa Gio',
+    'hpg23': 'Papa Gio',
     'bolognini': 'Bolognini',
     'carisma': 'CA.RI.S.M.A.',
     'mascheroni': 'Mascheroni',
     'leodavinci': 'Leo da Vinci',
     'lussana': 'Lussana',
-    'salesiani': 'Salesiani'
+    'salesiani': 'Salesiani',
+    'aism': 'A.I.S.M.'
 }
 
 # Dizionario che collega gli orientamenti EXIF alle trasformazioni da applicare
@@ -531,3 +536,13 @@ class MostraHandler(webapp2.RequestHandler):
 
             # Restituisce la pagina con tutte le informazioni
             self.response.write(template.render({'token': token, 'domanda': domande[0], 'base': urlparse.urlunparse((o.scheme, o.netloc, '', '', '', ''))}))
+
+
+class LetsEncryptHandler(webapp2.RequestHandler):
+    def get(self, challenge):
+        self.response.headers['Content-Type'] = 'text/plain'
+        responses = {
+                    '_bQozz1nTsrWU-4Qtf8Yqxzl4HtsaY4lTkVLCXrsywg': '_bQozz1nTsrWU-4Qtf8Yqxzl4HtsaY4lTkVLCXrsywg.cetpn24oOcP9l77ao_7kFwNxRPp4iURfkkE5A5DOYOU',
+                    '[challenge 2]': '[response 2]'
+                }
+        self.response.write(responses.get(challenge, ''))
