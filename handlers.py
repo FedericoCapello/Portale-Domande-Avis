@@ -25,17 +25,21 @@ JINJA_ENVIRONMENT = jinja2.Environment(
 
 # Dizionario che collega la tipologia di ente al selfie di default se non specificato
 DEFAULT_SELFIE = {
-    'Test': 'img/heart.jpg',
-    '': 'img/heart.jpg',
-    'bicocca': 'img/heart.jpg',
-    'Papa Gio': 'img/heart.jpg',
-    'Bolognini': 'img/heart.jpg',
-    'CA.RI.S.M.A.': 'img/heart.jpg',
-    'Mascheroni': 'img/heart.jpg',
-    'Leo da Vinci': 'img/heart.jpg',
-    'Lussana': 'img/heart.jpg',
-    'Salesiani': 'img/heart.jpg',
-    'A.I.S.M.': 'img/heart.jpg'
+    'Test': 'img/drop.jpg',
+    '': 'img/drop.jpg',
+    'bicocca': 'img/drop.jpg',
+    'Papa Gio': 'img/drop.jpg',
+    'Bolognini': 'img/drop.jpg',
+    'CA.RI.S.M.A.': 'img/drop.jpg',
+    'Mascheroni': 'img/drop.jpg',
+    'Leo da Vinci': 'img/drop.jpg',
+    'Lussana': 'img/drop.jpg',
+    'Salesiani': 'img/drop.jpg',
+    'A.I.S.M.': 'img/drop.jpg',
+    'A.I.S.M. Mi': 'img/drop.jpg',
+    'A.I.S.M. Ge': 'img/drop.jpg',
+    'A.I.S.M. Ba': 'img/drop.jpg',
+    'A.I.S.M. Pc': 'img/drop.jpg'
 }
 
 # Dizionario che collega la tipologia di ente all'immagine di background
@@ -50,7 +54,11 @@ BACKGROUND_IMAGES = {
     'Leo da Vinci': 'img/leonardo_da_vinci.jpg',
     'Lussana': 'img/lussana.jpg',
     'Salesiani': 'img/salesiani.jpg',
-    'A.I.S.M.': 'img/aism.jpg'
+    'A.I.S.M.': 'img/aisma.jpg',
+    'A.I.S.M. Mi': 'img/aisma.jpg',
+    'A.I.S.M. Ge': 'img/aisma.jpg',
+    'A.I.S.M. Ba': 'img/aisma.jpg',
+    'A.I.S.M. Pc': 'img/aisma.jpg'
 }
 
 # Dizionario che collega la tipologia di ente alla sua denominazione estesa
@@ -65,7 +73,11 @@ ENTE_TO_STR = {
     'Leo da Vinci': 'Ist. L. Da Vinci',
     'Lussana': 'L. S. Lussana',
     'Salesiani': 'Ist. "Don Bosco" Treviglio',
-    'A.I.S.M.': 'A.I.S.M.'
+    'A.I.S.M.': 'A.I.S.M.',
+    'A.I.S.M. Mi': 'A.I.S.M. Milano',
+    'A.I.S.M. Ge': 'A.I.S.M. Genova',
+    'A.I.S.M. Ba': 'A.I.S.M. Bari',
+    'A.I.S.M. Pc': 'A.I.S.M. Piacenza'
 
 }
 
@@ -81,7 +93,12 @@ STR_TO_ENTE = {
     'Ist. L. Da Vinci': 'Leo da Vinci',
     'L. S. Lussana': 'Lussana',
     'Ist. "Don Bosco" Treviglio': 'Salesiani',
-    'A.I.S.M.': 'A.I.S.M.'
+    'A.I.S.M.': 'A.I.S.M.',
+    'A.I.S.M. Milano': 'A.I.S.M. Mi',
+    'A.I.S.M. Genova': 'A.I.S.M. Ge',
+    'A.I.S.M. Bari': 'A.I.S.M. Ba',
+    'A.I.S.M. Piacenza': 'A.I.S.M. Pc'
+
 }
 
 # Dizionario che collega url di un ente al suo nome contratto
@@ -95,7 +112,11 @@ URL_TO_ENTE = {
     'leodavinci': 'Leo da Vinci',
     'lussana': 'Lussana',
     'salesiani': 'Salesiani',
-    'aism': 'A.I.S.M.'
+    'aism': 'A.I.S.M.',
+    'aismmi': 'A.I.S.M. Mi',
+    'aismge': 'A.I.S.M. Ge',
+    'aismba': 'A.I.S.M. Ba',
+    'aismpc': 'A.I.S.M. Pc'
 }
 
 # Dizionario che collega gli orientamenti EXIF alle trasformazioni da applicare
